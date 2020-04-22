@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { updateOrder } from '../../actions';
 import { submitOrder } from '../../apiCalls';
 
 class OrderForm extends Component {
@@ -31,7 +29,6 @@ class OrderForm extends Component {
         ingredients: this.state.ingredients
       }
       submitOrder(orderInfo)
-        .then(data => this.props.updateOrder(data))
     } else {
       e.preventDefault()
       this.setState({ error: 'Add at least one ingredient to your order.' })
@@ -75,9 +72,4 @@ class OrderForm extends Component {
     )
   }
 }
-
-const mapDispatchToProps = dispatch => ({
-  updateOrder: (name, order) => dispatch( updateOrder(name, order) )
-})
-
-export default connect(null, mapDispatchToProps)(OrderForm);
+export default OrderForm;

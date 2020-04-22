@@ -1,6 +1,6 @@
 import React from 'react';
 import App from './App';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
@@ -9,18 +9,7 @@ import { getOrders, submitOrder } from '../../apiCalls';
 
 jest.mock('../../apiCalls');
 
-let testStore, testWrapper, orders;
-
-beforeEach(() => {
-  testStore = createStore(rootReducer)
-
-  testWrapper = render(
-    <Provider store={testStore}>
-      <App />
-    </Provider>
-  )
-
-  orders = [{
+const  ordersInfo = [{
             "id": 1,
             "name": "Pat",
             "ingredients": [
@@ -43,42 +32,100 @@ beforeEach(() => {
                 "jalapeno"
             ]
         }]
-})
 
 describe('App', () => {
-  it.skip('should render the correct orders to the page', async () => {
+  it('should render the correct orders to the page', async () => {
 
-    getOrders.mockResolvedValue(orders)
+    getOrders.mockResolvedValue(ordersInfo)
 
-    const { getByText } = testWrapper;
+    const testStore = createStore(rootReducer)
 
+    const testWrapper = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    )
+
+    testStore.dispatch({
+      type: 'SET_ORDERS',
+      orders: ordersInfo
+    })
+
+    const { getByText, getByRole } = testWrapper
 
     const heading = getByText('Burrito Builder')
-    const customer = await waitFor(() => getByText('Pat'))
+    const customer = getByText('Pat')
+    const customer2 = getByText('Sam')
+
 
     expect(heading).toBeInTheDocument();
     expect(customer).toBeInTheDocument();
+    expect(customer2).toBeInTheDocument();
   })
 
   it('should add a new order to page after clicking submit', async () => {
-    // const { getByText, getByPlaceholderText, getByRole } = testWrapper;
 
-    // const beans = getByRole('button', {name: 'beans'})
-    // const steak = getByRole('button', {name: 'steak'})
-    // fireEvent.click(beans)
-    // fireEvent.click(steak)
+    const customerOrder = {
+      name: 'Brad',
+      ingredients: ['beans', 'steak'],
+      id: 3
+    }
 
-    //Create sample order of one object
-    // submitOrder.mockResolvedValue()
+    const updatedOrdersInfo = [...ordersInfo, customerOrder]
+
+    getOrders.mockResolvedValue(ordersInfo)
+    submitOrder.mockResolvedValue(customerOrder)
+
+    const testStore = createStore(rootReducer)
+
+    const testWrapper = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>)
+
+      testStore.dispatch({
+        type: 'SET_ORDERS',
+        orders: updatedOrdersInfo
+      })
+
+    const { getByText, getByPlaceholderText, getByRole } = testWrapper;
+
+    const beans = getByRole('button', {name: 'beans'})
+    const steak = getByRole('button', {name: 'steak'})
+    const customer = getByPlaceholderText('Name')
+    const submitBtn = getByRole('button', { name: 'Submit Order' })
+
+    fireEvent.change(customer, {target: { value: 'Brad' }})
+    fireEvent.click(beans)
+    fireEvent.click(steak)
+    fireEvent.click(submitBtn)
+
+    const newCustomer = await waitFor(() => getByText('Brad'))
+    //may need test id to place on ingredient items being returned in order to test that those specific items are being rendered to the page.
+
+    expect(newCustomer).toBeInTheDocument();
   })
 
   it('should not submit an order to the page if no ingredients are selected', () => {
-    // const { getByText, getByPlaceholderText, getByRole } = testWrapper;
 
-    // const submitBtn = getByRole('button', {name: 'Submit Order'})
-    // fireEvent.click(submitBtn)
+    const testStore = createStore(rootReducer)
 
-    // const errorMsg = getByText('Add at least one ingredient to your order.')
-    // expect(errorMsg).toBeInTheDocument();
+    const testWrapper = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>)
+
+      testStore.dispatch({
+        type: 'SET_ORDERS',
+        orders: []
+      })
+
+    const { getByText, getByPlaceholderText, getByRole } = testWrapper;
+
+    const submitBtn = getByRole('button', {name: 'Submit Order'})
+    fireEvent.click(submitBtn)
+
+    const errorMsg = getByText('Add at least one ingredient to your order.')
+    expect(errorMsg).toBeInTheDocument();
   })
 })

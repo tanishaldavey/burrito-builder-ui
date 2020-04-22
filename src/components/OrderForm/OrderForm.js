@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { updateOrder } from '../../actions';
 import { submitOrder } from '../../apiCalls';
 
 class OrderForm extends Component {
@@ -19,6 +21,7 @@ class OrderForm extends Component {
   handleIngredientChange = e => {
     e.preventDefault();
     this.setState({ingredients: [...this.state.ingredients, e.target.name]});
+    this.setState({ error: '' })
   }
 
   handleSubmit = e => {
@@ -27,10 +30,11 @@ class OrderForm extends Component {
         name: this.state.name,
         ingredients: this.state.ingredients
       }
-      console.log(orderInfo);
       submitOrder(orderInfo)
+        .then(data => this.props.updateOrder(data))
     } else {
-      this.setState({ error: 'Add at least one ingredient to your orders.' })
+      e.preventDefault()
+      this.setState({ error: 'Add at least one ingredient to your order.' })
     }
     this.clearInputs();
   }
@@ -72,4 +76,8 @@ class OrderForm extends Component {
   }
 }
 
-export default OrderForm;
+const mapDispatchToProps = dispatch => ({
+  updateOrder: (name, order) => dispatch( updateOrder(name, order) )
+})
+
+export default connect(null, mapDispatchToProps)(OrderForm);

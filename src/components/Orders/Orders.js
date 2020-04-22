@@ -13,12 +13,13 @@ class Orders extends Component {
   }
 
   orderEls = () => this.props.orders.map(order => {
+    let key = 0;
     return (
-      <div className="order">
+      <div key={order.id} className="order">
         <h3>{order.name}</h3>
         <ul className="ingredient-list">
           {order.ingredients.map(ingredient => {
-            return <li> {ingredient}</li>
+            return <li key={key +=1}> {ingredient}</li>
           })}
         </ul>
       </div>
